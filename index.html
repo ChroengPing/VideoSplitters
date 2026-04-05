@@ -533,7 +533,17 @@
     </div>
 
     <script>
-      const apiKey = "AIzaSyCN5a6He0SFAf_qgctqQs8HVozIl0FNaW4";
+      // API key moved to Vercel serverless function
+      fetch("/api/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          promptText,
+          base64Data,
+        }),
+      });
       const videoInput = document.getElementById("videoInput");
       const hiddenVideo = document.getElementById("hiddenVideo");
       const canvas = document.getElementById("previewCanvas");
@@ -987,7 +997,8 @@
               aiStatusDetail.innerText = `វីដេអូវែង៖ កំពុងបន្តទាញយកអត្ថបទ (${pct}%) ពីនាទីទី ${Math.floor(lastEndTime / 60)}:${Math.floor(lastEndTime % 60)} ដល់ចប់...`;
             }
 
-            const instruction = "You are a precise subtitle generator. Always use the pipe character | as a separator. Output raw text only. Format: startInSeconds|endInSeconds|text. NEVER use MM:SS format, use raw seconds like 1.5 or 125.5. Keep phrases short (3-7 words).";
+            const instruction =
+              "You are a precise subtitle generator. Always use the pipe character | as a separator. Output raw text only. Format: startInSeconds|endInSeconds|text. NEVER use MM:SS format, use raw seconds like 1.5 or 125.5. Keep phrases short (3-7 words).";
             let promptText = "";
 
             if (isKhmerFont) {
@@ -996,35 +1007,18 @@
               promptText = `${instruction}\n\nTASK: Transcribe the audio in ORIGINAL English. DO NOT translate.\nAUDIO DURATION: ${durationSec} seconds.\n${attempts > 0 ? `CRITICAL: CONTINUE EXACTLY from ${lastEndTime}s to ${durationSec}s. DO NOT start from 0.0s.` : `CRITICAL: Transcribe from 0.0s to ${durationSec}s. DO NOT stop early.`}\nFORMAT: Break into short phrases (3-7 words) to keep the text short and easy to read.\nOUTPUT FORMAT: Plain text, format: start_time|end_time|text\nEXAMPLE:\n${lastEndTime === 0 ? "0.0|3.5|Hello everyone welcome back" : `${lastEndTime}|${lastEndTime + 3.5}|continuing from the previous part`}`;
             }
 
-            const response = await fetchWithRetry(
-              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  contents: [
-                    {
-                      parts: [
-                        { text: promptText },
-                        {
-                          inlineData: {
-                            mimeType: targetBlob.type || "audio/mp4",
-                            data: base64Data,
-                          },
-                        },
-                      ],
-                    },
-                  ],
-                  generationConfig: {
-                    maxOutputTokens: 8192,
-                    temperature: 0.1,
-                  },
-                }),
-              },
-            );
+            const response = await fetchWithRetry("/api/gemini", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                promptText,
+                base64Data,
+                mimeType: targetBlob.type || "audio/mp4",
+              }),
+            });
 
             const result = await response.json();
-            
+
             if (result.error) {
               throw new Error(result.error.message || "API Error");
             }
