@@ -1040,7 +1040,7 @@ ${lastEndTime === 0 ? "0.0|3.5|Hello everyone welcome back" : `${lastEndTime}|${
             // );
             // ខ្ញុំបានបន្ថែមពាក្យ -latest នៅខាងចុងឈ្មោះ model
             const response = await fetchWithRetry(
-              `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+             `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
               {
                 method: "POST",
                 body: JSON.stringify({
