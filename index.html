@@ -987,8 +987,7 @@
               aiStatusDetail.innerText = `វីដេអូវែង៖ កំពុងបន្តទាញយកអត្ថបទ (${pct}%) ពីនាទីទី ${Math.floor(lastEndTime / 60)}:${Math.floor(lastEndTime % 60)} ដល់ចប់...`;
             }
 
-            const instruction =
-              "You are a precise subtitle generator. Always use the pipe character | as a separator. Output raw text only. Format: startInSeconds|endInSeconds|text. NEVER use MM:SS format, use raw seconds like 1.5 or 125.5. Keep phrases short (3-7 words).";
+            const instruction = "You are a precise subtitle generator. Always use the pipe character | as a separator. Output raw text only. Format: startInSeconds|endInSeconds|text. NEVER use MM:SS format, use raw seconds like 1.5 or 125.5. Keep phrases short (3-7 words).";
             let promptText = "";
 
             if (isKhmerFont) {
@@ -998,7 +997,7 @@
             }
 
             const response = await fetchWithRetry(
-              `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1009,7 +1008,7 @@
                         { text: promptText },
                         {
                           inlineData: {
-                            mimeType: targetBlob.type || "audio/webm",
+                            mimeType: targetBlob.type || "audio/mp4",
                             data: base64Data,
                           },
                         },
@@ -1025,8 +1024,7 @@
             );
 
             const result = await response.json();
-
-            // ចាប់យក Error ពី API ដើម្បីបង្ហាញឱ្យច្បាស់បើមានបញ្ហា
+            
             if (result.error) {
               throw new Error(result.error.message || "API Error");
             }
