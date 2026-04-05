@@ -940,135 +940,111 @@
           );
         });
       }
-      async function generateAICaptions() {
-        if (!aiCaptionToggle.checked) return;
-        aiStatus.classList.remove("hidden");
-        aiStatusDetail.innerText = "កំពុងញែកសម្លេង...";
-
-        try {
-          let targetBlob;
-          if (videoFile.size < 18 * 1024 * 1024) {
+//ថ្មី
+    async function generateAICaptions() {
+    if (!aiCaptionToggle.checked) return;
+    aiStatus.classList.remove('hidden');
+    aiStatusDetail.innerText = "កំពុងញែកសម្លេង...";
+   
+    try {
+        let targetBlob;
+        if (videoFile.size < 18 * 1024 * 1024) {
             targetBlob = videoFile;
-          } else {
+        } else {
             targetBlob = await extractAudioFast(videoFile);
-          }
+        }
+        
+        if (!targetBlob || targetBlob.size === 0) throw new Error("ទិន្នន័យវីដេអូមានបញ្ហា");
 
-          if (!targetBlob || targetBlob.size === 0)
-            throw new Error("ទិន្នន័យវីដេអូមានបញ្ហា");
+        const selectedFont = fontSelect.value;
+        const isKhmerFont = selectedFont.includes('Kantumruy') || selectedFont.includes('Noto') || selectedFont.includes('Battambang') || selectedFont.includes('Suwannaphum');
+        const base64Data = await blobToBase64(targetBlob);
+        const durationSec = Math.ceil(hiddenVideo.duration);
+        
+        let allCaptions = [];
+        let lastEndTime = 0;
+        let attempts = 0;
+        const maxAttempts = 10; 
 
-          const selectedFont = fontSelect.value;
-          const isKhmerFont =
-            selectedFont.includes("Kantumruy") ||
-            selectedFont.includes("Noto") ||
-            selectedFont.includes("Battambang") ||
-            selectedFont.includes("Suwannaphum");
-          const base64Data = await blobToBase64(targetBlob);
-          const durationSec = Math.ceil(hiddenVideo.duration);
-
-          let allCaptions = [];
-          let lastEndTime = 0;
-          let attempts = 0;
-          const maxAttempts = 10;
-
-          while (lastEndTime < durationSec - 5 && attempts < maxAttempts) {
+        while (lastEndTime < durationSec - 5 && attempts < maxAttempts) {
             if (attempts > 0) {
-              const pct = Math.min(
-                100,
-                Math.round((lastEndTime / durationSec) * 100),
-              );
-              aiStatusDetail.innerText = `វីដេអូវែង៖ កំពុងបន្ត (${pct}%) ពីនាទីទី ${Math.floor(lastEndTime / 60)}:${Math.floor(lastEndTime % 60)}...`;
+                const pct = Math.min(100, Math.round((lastEndTime / durationSec) * 100));
+                aiStatusDetail.innerText = `វីដេអូវែង៖ កំពុងបន្ត (${pct}%) ពីនាទីទី ${Math.floor(lastEndTime/60)}:${Math.floor(lastEndTime%60)}...`;
             } else {
-              aiStatusDetail.innerText = isKhmerFont
-                ? "កំពុងបកប្រែជាភាសាខ្មែរ..."
-                : "កំពុងស្រង់អត្ថបទអង់គ្លេស...";
+                aiStatusDetail.innerText = isKhmerFont ? "កំពុងបកប្រែជាភាសាខ្មែរ..." : "កំពុងស្រង់អត្ថបទអង់គ្លេស...";
             }
 
-            // បញ្ចូល Instruction ទៅក្នុង Prompt ផ្ទាល់ ដើម្បីឱ្យដើរលើគ្រប់ API Version
-            const instruction =
-              "You are a precise subtitle generator. Output raw text only. Use the pipe character | as a separator. Format: startInSeconds|endInSeconds|text. NEVER use MM:SS format, use raw seconds. Keep phrases short (3-7 words).";
-
+            const instruction = "You are a professional subtitle generator. Output raw text ONLY. Use the pipe character | as a separator. Format: startInSeconds|endInSeconds|text. NEVER use MM:SS format. Keep phrases short (3-7 words).";
+            
             let promptText = "";
             if (isKhmerFont) {
-              promptText = `${instruction}\nTASK: Translate audio into KHMER from ${lastEndTime}s to ${durationSec}s.`;
+                promptText = `${instruction}\nTASK: Translate audio into KHMER from ${lastEndTime}s to ${durationSec}s.`;
             } else {
-              promptText = `${instruction}\nTASK: Transcribe audio in ORIGINAL ENGLISH from ${lastEndTime}s to ${durationSec}s.`;
+                promptText = `${instruction}\nTASK: Transcribe audio in ORIGINAL ENGLISH from ${lastEndTime}s to ${durationSec}s.`;
             }
 
-            // ប្រើ Version v1beta ជាមួយ URL ដែលត្រឹមត្រូវសម្រាប់ Gemini 1.5 Flash
+            // ដំណោះស្រាយចុងក្រោយ៖ ប្រើ Version v1 (Stable) និង Model ID ស្តង់ដារ
             const response = await fetchWithRetry(
-              `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  contents: [
-                    {
-                      parts: [
-                        { text: promptText },
-                        {
-                          inlineData: {
-                            mimeType: targetBlob.type || "video/mp4",
-                            data: base64Data,
-                          },
-                        },
-                      ],
-                    },
-                  ],
-                  generationConfig: {
-                    maxOutputTokens: 8192,
-                    temperature: 0.1,
-                  },
-                }),
-              },
+                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, 
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: promptText },
+                                { inlineData: { mimeType: "audio/mp3", data: base64Data } } // បង្ខំទម្រង់សម្លេងឱ្យស្តង់ដារ
+                            ]
+                        }],
+                        generationConfig: {
+                            maxOutputTokens: 8192,
+                            temperature: 0.1
+                        }
+                    })
+                }
             );
 
             const result = await response.json();
             if (result.error) throw new Error(result.error.message);
 
-            let textResponse =
-              result.candidates?.[0]?.content?.parts?.[0]?.text;
+            let textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
             if (!textResponse) break;
 
-            const lines = textResponse
-              .replace(/```(text)?/g, "")
-              .trim()
-              .split("\n");
+            const lines = textResponse.replace(/```(text)?/g, '').trim().split('\n');
             let batch = [];
-            for (let line of lines) {
-              const parts = line.split("|");
-              if (parts.length >= 3) {
-                const start = parseFloat(
-                  parts[0].trim().replace(/[^0-9.]/g, ""),
-                );
-                const end = parseFloat(parts[1].trim().replace(/[^0-9.]/g, ""));
-                const text = parts.slice(2).join("|").trim();
-                if (!isNaN(start) && !isNaN(end) && text && text.length > 1) {
-                  if (attempts === 0 || end > lastEndTime + 0.1) {
-                    batch.push({ start, end, text });
-                  }
+            for(let line of lines) {
+                const parts = line.split('|');
+                if(parts.length >= 3) {
+                    const start = parseFloat(parts[0].trim().replace(/[^0-9.]/g, ''));
+                    const end = parseFloat(parts[1].trim().replace(/[^0-9.]/g, ''));
+                    const text = parts.slice(2).join('|').trim();
+                    if(!isNaN(start) && !isNaN(end) && text && text.length > 1) {
+                        if (attempts === 0 || end > lastEndTime + 0.1) {
+                            batch.push({ start, end, text });
+                        }
+                    }
                 }
-              }
             }
 
             if (batch.length === 0) break;
             allCaptions = allCaptions.concat(batch);
-            allCaptions.sort((a, b) => a.start - b.start);
+            allCaptions.sort((a,b) => a.start - b.start);
             lastEndTime = allCaptions[allCaptions.length - 1].end;
             attempts++;
-          }
-
-          captions = allCaptions;
-          if (captions.length === 0)
-            throw new Error("មិនអាចទាញយក Caption បានទេ");
-        } catch (error) {
-          console.error("AI Error:", error);
-          alert(`Error: ${error.message}`);
-          captions = [];
-        } finally {
-          aiStatus.classList.add("hidden");
         }
-      }
+        
+        captions = allCaptions;
+        if (allCaptions.length === 0) throw new Error("មិនអាចទាញយក Caption បានទេ");
 
+    } catch (error) {
+        console.error("AI Error:", error);
+        alert(`បរាជ័យ៖ ${error.message}\nសូមពិនិត្យមើល API Key របស់អ្នកថាបានដាក់ត្រឹមត្រូវឬនៅ។`);
+        captions = [];
+    } finally {
+        aiStatus.classList.add('hidden');
+    }
+}
+// កែថ្មី
       function blobToBase64(blob) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
