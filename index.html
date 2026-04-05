@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ឧបករណ៍បំបែកវីដេអូបញ្ឈរ AI Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Anton&family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@300;400;700&family=Montserrat:wght@700;900&family=Noto+Sans+Khmer:wght@400;700&family=Poppins:wght@700;900&family=Suwannaphum:wght@400;700&display=swap');
+       
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --accent: #7c3aed;
+        }
+
+        body {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            min-height: 100vh;
+        }
+
+        /* Mobile Frame Styling */
+        .phone-frame {
+            width: 280px;
+            height: 500px;
+            background: #111827;
+            border-radius: 3rem;
+            border: 8px solid #374151;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .phone-notch {
+            width: 120px;
+            height: 20px;
+            background: #374151;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-bottom-left-radius: 1rem;
+            border-bottom-right-radius: 1rem;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        #previewCanvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-gradient:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+            filter: brightness(1.1);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-12">
+
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <header class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-3">
+            Video Splitter AI Pro
+        </h1>
+        <p class="text-gray-600 font-medium max-w-lg mx-auto">
+            បំបែកវីដេអូសម្រាប់ TikTok & Reels ជាមួយបច្ចេកវិទ្យា AI Caption និង Background Blur យ៉ាងងាយស្រួល។
+        </p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+       
+        <!-- Left: Configuration -->
+        <div class="lg:col-span-7 space-y-8">
+           
+            <!-- Upload Section -->
+            <div class="bg-white p-2 rounded-3xl shadow-sm border border-gray-100">
+                <div class="border-2 border-dashed border-blue-200 rounded-2xl p-10 text-center hover:bg-blue-50 transition-colors cursor-pointer group" onclick="document.getElementById('videoInput').click()">
+                    <input type="file" id="videoInput" accept="video/*" class="hidden">
+                    <div id="uploadPlaceholder">
+                        <div class="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l-3-3m0 0l-3 3m3-3v12M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path></svg>
+                        </div>
+                        <p class="text-xl font-bold text-gray-800">ដាក់វីដេអូរបស់អ្នកនៅទីនេះ</p>
+                        <p class="text-sm text-gray-400 mt-1">គាំទ្ររាល់ឯកសារ MP4, MOV ឬ WebM</p>
+                    </div>
+                    <p id="fileName" class="text-blue-600 font-bold hidden truncate px-4"></p>
+                </div>
+            </div>
+
+            <!-- Settings Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Video Settings -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+                    <h3 class="font-bold text-gray-700 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"></path></svg>
+                        ការកំណត់វីដេអូ
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">រយៈពេលម្នាក់ៗ</label>
+                            <select id="durationInput" class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-400 outline-none font-medium">
+                                <option value="15">15 វិនាទី (Shorts)</option>
+                                <option value="30">30 វិនាទី (Reels)</option>
+                                <option value="60" selected>60 វិនាទី (TikTok)</option>
+                                <option value="90">90 វិនាទី</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">របៀបបង្ហាញ (Scale)</label>
+                            <select id="scaleMode" class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-400 outline-none font-medium">
+                                <option value="fit">បញ្ឈរតម្រូវឱ្យសម (Fit)</option>
+                                <option value="fill">បញ្ឈរបំពេញផ្ទៃ (Fill/Crop)</option>
+                                <option value="horizontal">រក្សាទម្រង់ផ្ដេកដើម (Original)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Toggle -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+                    <h3 class="font-bold text-gray-700 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-purple-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        មុខងារបន្ថែម
+                    </h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                            <span class="text-sm font-bold text-gray-600">Background Blur</span>
+                            <input type="checkbox" id="blurBgToggle" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                        </label>
+                        <label class="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors border-2 border-transparent hover:border-purple-200">
+                            <span class="text-sm font-bold text-gray-600">Auto Captions (AI)</span>
+                            <input type="checkbox" id="aiCaptionToggle" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500" checked>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Caption Design Settings -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4 md:col-span-2">
+                    <h3 class="font-bold text-gray-700 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-pink-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z" clip-rule="evenodd"></path></svg>
+                        រចនាអក្សររត់ (Caption Style)
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">ប្រភេទ Font</label>
+                            <select id="fontSelect" class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-pink-400 outline-none font-medium">
+                                <optgroup label="Khmer Fonts">
+                                    <option value="'Kantumruy Pro', sans-serif">Kantumruy Pro</option>
+                                    <option value="'Noto Sans Khmer', sans-serif" selected>Noto Sans Khmer</option>
+                                    <option value="'Battambang', cursive">Battambang</option>
+                                    <option value="'Suwannaphum', serif">Suwannaphum</option>
+                                </optgroup>
+                                <optgroup label="English Fonts">
+                                    <option value="'Anton', sans-serif">Anton (TikTok Style)</option>
+                                    <option value="'Montserrat', sans-serif">Montserrat</option>
+                                    <option value="'Poppins', sans-serif">Poppins</option>
+                                    <option value="'Times New Roman', serif">Times New Roman</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">ពណ៌អក្សរ</label>
+                            <div class="flex items-center mt-1 p-2 bg-gray-50 rounded-xl">
+                                <input type="color" id="textColorInput" value="#FFFFFF" class="w-8 h-8 rounded cursor-pointer">
+                                <span class="ml-3 text-sm font-bold text-gray-600 uppercase" id="textColorHex">#FFFFFF</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">ពណ៌ផ្ទៃ (Background)</label>
+                            <div class="flex items-center mt-1 p-2 bg-gray-50 rounded-xl">
+                                <input type="color" id="bgColorInput" value="#000000" class="w-8 h-8 rounded cursor-pointer">
+                                <span class="ml-3 text-sm font-bold text-gray-600 uppercase" id="bgColorHex">#000000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI & Processing Status -->
+            <div id="aiStatus" class="hidden animate-pulse">
+                <div class="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-100 p-5 rounded-3xl flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center">
+                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                    </div>
+                    <div>
+                        <p class="text-purple-800 font-bold" id="aiStatusTitle">AI កំពុងវិភាគសម្លេង...</p>
+                        <p class="text-xs text-purple-600" id="aiStatusDetail">រង់ចាំបន្តិចដើម្បីបង្កើត Caption សម្រាប់គ្រប់ចំណែក</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <div class="relative group">
+                <div class="flex gap-4">
+                    <button id="processBtn" disabled class="btn-gradient w-full text-white py-5 rounded-3xl font-black text-2xl uppercase tracking-widest disabled:bg-gray-300 disabled:shadow-none disabled:translate-y-0 disabled:cursor-not-allowed">
+                        ចាប់ផ្ដើមផលិត
+                    </button>
+                    <button id="cancelBtn" class="hidden bg-red-500 hover:bg-red-600 text-white py-5 px-6 rounded-3xl font-black text-xl uppercase tracking-widest shadow-lg transform hover:-translate-y-1 transition duration-300 flex-shrink-0">
+                        បោះបង់
+                    </button>
+                </div>
+                <p id="progressHint" class="text-center text-[10px] text-gray-400 mt-3 font-bold uppercase tracking-widest hidden">សូមកុំបិទផ្ទាំងនេះ រហូតដល់ការផលិតចប់ ១០០%</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="status" class="hidden space-y-3 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <span id="statusText" class="text-xs font-black text-blue-600 uppercase tracking-tighter">កំពុងដំណើរការ...</span>
+                    <span id="progressPercent" class="text-lg font-black text-blue-600">0%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
+                    <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full transition-all duration-500 shadow-inner" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Preview -->
+        <div class="lg:col-span-5 flex flex-col items-center sticky top-10 w-full">
+            <h3 id="previewTitle" class="text-xs font-black text-gray-400 uppercase tracking-[0.3em] mb-6">VERTICAL PREVIEW</h3>
+           
+            <div id="previewFrame" class="phone-frame w-full flex items-center justify-center relative bg-gray-900 overflow-hidden shadow-2xl">
+                <div class="phone-notch"></div>
+                <canvas id="previewCanvas"></canvas>
+                <div id="previewOverlay" class="absolute inset-0 flex items-center justify-center bg-gray-900 z-0">
+                    <p class="text-gray-600 text-xs font-bold uppercase tracking-widest">រង់ចាំវីដេអូ...</p>
+                </div>
+                <video id="hiddenVideo" class="hidden" playsinline crossorigin="anonymous"></video>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="mt-20 pt-10 border-t border-gray-200">
+        <div class="flex flex-col sm:flex-row items-center justify-between mb-8 hidden" id="resultHeader">
+            <h3 class="text-2xl font-black text-gray-800 flex items-center mb-4 sm:mb-0">
+                <span class="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mr-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </span>
+                លទ្ធផលដែលផលិតរួច
+            </h3>
+            <div class="flex space-x-3">
+                <button id="resetBtn" class="bg-gray-200 text-gray-700 font-bold py-3 px-6 rounded-xl shadow-sm hover:shadow-md hover:bg-gray-300 transition flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    ធ្វើថ្មី (Reset)
+                </button>
+                <button id="downloadAllBtn" class="bg-gradient-to-r from-emerald-400 to-green-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    ទាញយកទាំងអស់
+                </button>
+            </div>
+        </div>
+        <div id="downloadList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto max-h-[600px] p-2"></div>
+    </div>
+</div>
+
+<script>
+    const apiKey = "";
+    const videoInput = document.getElementById('videoInput');
+    const hiddenVideo = document.getElementById('hiddenVideo');
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d');
+    const processBtn = document.getElementById('processBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const resetBtn = document.getElementById('resetBtn');
+   
+    const scaleMode = document.getElementById('scaleMode');
+    const blurBgToggle = document.getElementById('blurBgToggle');
+    const aiCaptionToggle = document.getElementById('aiCaptionToggle');
+   
+    // UI Caption Styling Elements
+    const fontSelect = document.getElementById('fontSelect');
+    const textColorInput = document.getElementById('textColorInput');
+    const bgColorInput = document.getElementById('bgColorInput');
+    const textColorHex = document.getElementById('textColorHex');
+    const bgColorHex = document.getElementById('bgColorHex');
+
+    const status = document.getElementById('status');
+    const statusText = document.getElementById('statusText');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const aiStatus = document.getElementById('aiStatus');
+    const aiStatusDetail = document.getElementById('aiStatusDetail');
+    const downloadList = document.getElementById('downloadList');
+    const resultHeader = document.getElementById('resultHeader');
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
+    const progressHint = document.getElementById('progressHint');
+   
+    // Frame elements
+    const previewFrame = document.getElementById('previewFrame');
+    const previewTitle = document.getElementById('previewTitle');
+    const phoneNotch = document.querySelector('.phone-notch');
+    const previewOverlay = document.getElementById('previewOverlay');
+
+    let videoFile = null;
+    let captions = [];
+    let isCancelled = false;
+
+    function hexToRgba(hex, alpha) {
+        hex = hex.replace(/^#/, '');
+        if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    videoInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            videoFile = file;
+            captions = [];
+            document.getElementById('fileName').innerText = `ឯកសារ៖ ${file.name}`;
+            document.getElementById('fileName').classList.remove('hidden');
+            document.getElementById('uploadPlaceholder').classList.add('hidden');
+            previewOverlay.classList.add('hidden');
+           
+            const url = URL.createObjectURL(file);
+            hiddenVideo.src = url;
+            hiddenVideo.onloadedmetadata = () => {
+                processBtn.disabled = false;
+                setupCanvas();
+            };
+        }
+    });
+
+    [scaleMode, blurBgToggle].forEach(el => el.addEventListener('change', () => {
+        if(hiddenVideo.src) setupCanvas();
+    }));
+
+    [fontSelect, textColorInput, bgColorInput].forEach(el => el.addEventListener('input', () => {
+        if (el.id === 'textColorInput') textColorHex.innerText = el.value.toUpperCase();
+        if (el.id === 'bgColorInput') bgColorHex.innerText = el.value.toUpperCase();
+       
+        if (hiddenVideo.paused && hiddenVideo.src) {
+            drawFrame();
+        }
+    }));
+
+    function setupCanvas() {
+        if (scaleMode.value === 'horizontal') {
+            const ratio = hiddenVideo.videoWidth / hiddenVideo.videoHeight || 16/9;
+            canvas.height = 720;
+            canvas.width = Math.round(720 * ratio);
+           
+            previewFrame.style.width = '100%';
+            previewFrame.style.maxWidth = '600px';
+            previewFrame.style.height = 'auto';
+            previewFrame.style.aspectRatio = `${canvas.width}/${canvas.height}`;
+            previewFrame.style.borderRadius = '1rem';
+            phoneNotch.style.opacity = '0';
+            previewTitle.innerText = 'HORIZONTAL PREVIEW';
+            blurBgToggle.disabled = true;
+        } else {
+            canvas.width = 720;
+            canvas.height = 1280;
+           
+            previewFrame.style.width = '280px';
+            previewFrame.style.maxWidth = 'none';
+            previewFrame.style.height = '500px';
+            previewFrame.style.aspectRatio = '9/16';
+            previewFrame.style.borderRadius = '3rem';
+            phoneNotch.style.opacity = '1';
+            previewTitle.innerText = 'VERTICAL PREVIEW';
+            blurBgToggle.disabled = false;
+        }
+
+        hiddenVideo.currentTime = 0;
+        setTimeout(drawFrame, 100);
+    }
+
+    function drawFrame() {
+        const vW = hiddenVideo.videoWidth;
+        const vH = hiddenVideo.videoHeight;
+        const cW = canvas.width;
+        const cH = canvas.height;
+
+        ctx.clearRect(0, 0, cW, cH);
+
+        if (scaleMode.value === 'horizontal') {
+            ctx.drawImage(hiddenVideo, 0, 0, cW, cH);
+        } else if (scaleMode.value === 'fit') {
+            if (blurBgToggle.checked && !blurBgToggle.disabled) {
+                ctx.filter = 'blur(50px) brightness(0.5)';
+                const bgScale = cH / vH;
+                const bgW = vW * bgScale;
+                const bgX = (cW - bgW) / 2;
+                ctx.drawImage(hiddenVideo, bgX, 0, bgW, cH);
+                ctx.filter = 'none';
+            } else {
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(0, 0, cW, cH);
+            }
+            const scale = cW / vW;
+            const sH = vH * scale;
+            const sY = (cH - sH) / 2;
+            ctx.drawImage(hiddenVideo, 0, 0, vW, vH, 0, sY, cW, sH);
+        } else {
+            // Fill vertical crop
+            const scale = cH / vH;
+            const sW = vW * scale;
+            const sX = (sW - cW) / 2 / scale;
+            ctx.drawImage(hiddenVideo, sX, 0, vW - (sX * 2), vH, 0, 0, cW, cH);
+        }
+
+        if (captions.length > 0 && aiCaptionToggle.checked) {
+            renderCaptions();
+        }
+       
+        if (!hiddenVideo.paused && !hiddenVideo.ended) {
+            requestAnimationFrame(drawFrame);
+        }
+    }
+
+    function renderCaptions() {
+        const currentTime = hiddenVideo.currentTime;
+        const currentCaption = captions.find(c => currentTime >= c.start && currentTime <= c.end);
+       
+        if (currentCaption) {
+            const text = currentCaption.text;
+            const selectedFont = fontSelect.value;
+            const isKhmerFont = selectedFont.includes('Kantumruy') || selectedFont.includes('Noto') || selectedFont.includes('Battambang') || selectedFont.includes('Suwannaphum');
+            
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+           
+            let currentFontSize = scaleMode.value === 'horizontal' ? 66 : 56;
+            ctx.font = `bold ${currentFontSize}px ${selectedFont}`;
+           
+            const maxWidth = canvas.width - (scaleMode.value === 'horizontal' ? 120 : 60);
+            let lines = [];
+
+            // ធានាថា English នៅតែ ១ ជួរជានិច្ច
+            if (!isKhmerFont) {
+                while (ctx.measureText(text).width > maxWidth && currentFontSize > 14) {
+                    currentFontSize -= 2;
+                    ctx.font = `bold ${currentFontSize}px ${selectedFont}`;
+                }
+                lines.push(text);
+            } else {
+                // ខ្មែរអាចទម្លាក់បន្ទាត់បាន
+                const words = text.split(' ');
+                let currentLine = '';
+                for (let i = 0; i < words.length; i++) {
+                    const testLine = currentLine + words[i] + ' ';
+                    const metrics = ctx.measureText(testLine);
+                    if (metrics.width > maxWidth && i > 0) {
+                        lines.push(currentLine.trim());
+                        currentLine = words[i] + ' ';
+                    } else {
+                        currentLine = testLine;
+                    }
+                }
+                lines.push(currentLine.trim());
+            }
+
+            const lineHeight = scaleMode.value === 'horizontal' ? 85 : 70;
+            const paddingX = 40;
+            const paddingY = 25;
+            const totalHeight = lines.length * lineHeight;
+           
+            const bottomOffset = scaleMode.value === 'horizontal' ? 80 : 250;
+            const startY = canvas.height - bottomOffset - (totalHeight / 2);
+
+            let maxLineWidth = 0;
+            lines.forEach(line => {
+                const w = ctx.measureText(line).width;
+                if (w > maxLineWidth) maxLineWidth = w;
+            });
+
+            const bgColorValue = bgColorInput.value;
+            ctx.fillStyle = hexToRgba(bgColorValue, 0.7);
+            const rectX = (canvas.width - maxLineWidth) / 2 - paddingX;
+            const rectY = startY - (lineHeight / 2) - paddingY + 5;
+            const rectW = maxLineWidth + paddingX * 2;
+            const rectH = totalHeight + paddingY * 2 - 10;
+           
+            ctx.beginPath();
+            ctx.roundRect(rectX, rectY, rectW, rectH, 20);
+            ctx.fill();
+
+            const textColorValue = textColorInput.value;
+           
+            ctx.shadowColor = "rgba(0,0,0,0.5)";
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+
+            lines.forEach((line, index) => {
+                const y = startY + (index * lineHeight);
+                ctx.fillStyle = textColorValue;
+                ctx.fillText(line, canvas.width / 2, y);
+            });
+           
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        }
+    }
+
+    async function fetchWithRetry(url, options, retries = 5) {
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        for (let i = 0; i < retries; i++) {
+            try {
+                const response = await fetch(url, options);
+                if (response.ok) return response;
+                if (i === retries - 1) {
+                    const errorText = await response.text();
+                    throw new Error(`API Request Failed (${response.status}): ${errorText}`);
+                }
+            } catch (err) {
+                if (i === retries - 1) throw err;
+            }
+            await new Promise(r => setTimeout(r, delays[i]));
+        }
+    }
+
+    async function extractAudioFast(file) {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const arrayBuffer = await file.arrayBuffer();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            
+            const targetSampleRate = 16000; 
+            const duration = audioBuffer.duration;
+            const offlineContext = new OfflineAudioContext(1, targetSampleRate * duration, targetSampleRate);
+            
+            const source = offlineContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(offlineContext.destination);
+            source.start();
+            
+            const renderedBuffer = await offlineContext.startRendering();
+            return bufferToWav(renderedBuffer);
+        } catch (e) {
+            console.warn("Fast audio extraction failed, falling back to slow real-time extraction:", e);
+            return await recordSampleSlow(hiddenVideo.duration); 
+        }
+    }
+
+    function bufferToWav(abuffer) {
+        let numOfChan = abuffer.numberOfChannels,
+            length = abuffer.length * numOfChan * 2 + 44,
+            buffer = new ArrayBuffer(length),
+            view = new DataView(buffer),
+            channels = [], i, sample,
+            offset = 0,
+            pos = 0;
+
+        function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+        function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+        setUint32(0x46464952); setUint32(length - 8); setUint32(0x45564157);
+        setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan);
+        setUint32(abuffer.sampleRate); setUint32(abuffer.sampleRate * 2 * numOfChan);
+        setUint16(numOfChan * 2); setUint16(16); setUint32(0x61746164); setUint32(length - pos - 4);
+
+        for (i = 0; i < abuffer.numberOfChannels; i++) channels.push(abuffer.getChannelData(i));
+
+        while (pos < length) {
+            for (i = 0; i < numOfChan; i++) {
+                sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+                view.setInt16(pos, sample, true);
+                pos += 2;
+            }
+            offset++;
+        }
+
+        return new Blob([buffer], { type: "audio/wav" });
+    }
+
+    function recordSampleSlow(duration) {
+        return new Promise(async (resolve, reject) => {
+            const originalTime = hiddenVideo.currentTime;
+            hiddenVideo.currentTime = 0;
+            hiddenVideo.muted = true;
+           
+            const recordDuration = Math.min(duration, 900); 
+
+            const stream = hiddenVideo.captureStream ? hiddenVideo.captureStream() : hiddenVideo.mozCaptureStream();
+            if (!stream) return reject(new Error("មិនអាចទាញយកសញ្ញាវីដេអូបានទេ"));
+
+            const audioTracks = stream.getAudioTracks();
+            if (audioTracks.length === 0) {
+                hiddenVideo.muted = false;
+                return reject(new Error("វីដេអូនេះមិនមានសម្លេងទេ"));
+            }
+           
+            const audioStream = new MediaStream(audioTracks);
+            const recorder = new MediaRecorder(audioStream);
+            const chunks = [];
+            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+            recorder.onstop = () => {
+                hiddenVideo.muted = false;
+                hiddenVideo.currentTime = originalTime;
+                resolve(new Blob(chunks, { type: 'audio/webm' }));
+            };
+           
+            recorder.start();
+            hiddenVideo.play();
+            setTimeout(() => {
+                hiddenVideo.pause();
+                if (recorder.state !== "inactive") recorder.stop();
+            }, (recordDuration * 1000) + 1000);
+        });
+    }
+
+    async function generateAICaptions() {
+        if (!aiCaptionToggle.checked) return;
+        aiStatus.classList.remove('hidden');
+        aiStatusDetail.innerText = "កំពុងញែកសម្លេងចេញពីវីដេអូក្នុងល្បឿនលឿន...";
+       
+        try {
+            let targetBlob;
+            if (videoFile.size < 18 * 1024 * 1024) {
+                aiStatusDetail.innerText = "កំពុងរៀបចំបញ្ជូនវីដេអូទៅកាន់ AI...";
+                targetBlob = videoFile;
+            } else {
+                aiStatusDetail.innerText = "វីដេអូមានទំហំធំ: កំពុងញែកសម្លេង (សូមកុំប្ដូរផ្ទាំង Browser)...";
+                targetBlob = await extractAudioFast(videoFile);
+            }
+            
+            if (!targetBlob || targetBlob.size === 0) throw new Error("ទិន្នន័យវីដេអូមានបញ្ហា");
+
+            const selectedFont = fontSelect.value;
+            const isKhmerFont = selectedFont.includes('Kantumruy') || selectedFont.includes('Noto') || selectedFont.includes('Battambang') || selectedFont.includes('Suwannaphum');
+            const base64Data = await blobToBase64(targetBlob);
+            const durationSec = Math.ceil(hiddenVideo.duration);
+            
+            let allCaptions = [];
+            let lastEndTime = 0;
+            let attempts = 0;
+            const maxAttempts = 10; 
+
+            while (lastEndTime < durationSec - 5 && attempts < maxAttempts) {
+                if (attempts === 0) {
+                    aiStatusDetail.innerText = isKhmerFont ? "កំពុងបកប្រែជាភាសាខ្មែរដោយ AI (អាចចំណាយពេលបន្តិច)..." : "កំពុងស្រង់អត្ថបទដើមដោយ AI (អាចចំណាយពេលបន្តិច)...";
+                } else {
+                    const pct = Math.min(100, Math.round((lastEndTime / durationSec) * 100));
+                    aiStatusDetail.innerText = `វីដេអូវែង៖ កំពុងបន្តទាញយកអត្ថបទ (${pct}%) ពីនាទីទី ${Math.floor(lastEndTime/60)}:${Math.floor(lastEndTime%60)} ដល់ចប់...`;
+                }
+
+                let prompt = "";
+                let sysInstruction = "You are a precise subtitle generator. Always use the pipe character | as a separator. Output raw text only. Format: startInSeconds|endInSeconds|text. NEVER use MM:SS format, use raw seconds like 1.5 or 125.5.";
+                
+                if (isKhmerFont) {
+                    prompt = `TASK: Translate the audio into KHMER.
+AUDIO DURATION: ${durationSec} seconds.
+${attempts > 0 ? `CRITICAL: CONTINUE EXACTLY from ${lastEndTime}s to ${durationSec}s. DO NOT start from 0.0s.` : `CRITICAL: Transcribe from 0.0s to ${durationSec}s. DO NOT stop early.`}
+FORMAT: Break into short phrases (4-8 words).
+OUTPUT FORMAT: Plain text, format: start_time|end_time|text
+EXAMPLE:
+${lastEndTime === 0 ? '0.0|3.5|សួស្ដីអ្នកទាំងអស់គ្នា' : `${lastEndTime}|${lastEndTime + 3.5}|បន្តពីអត្ថបទមុន`}`;
+                } else {
+                    prompt = `TASK: Transcribe the audio in ORIGINAL English. DO NOT translate.
+AUDIO DURATION: ${durationSec} seconds.
+${attempts > 0 ? `CRITICAL: CONTINUE EXACTLY from ${lastEndTime}s to ${durationSec}s. DO NOT start from 0.0s.` : `CRITICAL: Transcribe from 0.0s to ${durationSec}s. DO NOT stop early.`}
+FORMAT: Break into short phrases (3-7 words) to keep the text short and easy to read.
+OUTPUT FORMAT: Plain text, format: start_time|end_time|text
+EXAMPLE:
+${lastEndTime === 0 ? '0.0|3.5|Hello everyone welcome back' : `${lastEndTime}|${lastEndTime + 3.5}|continuing from the previous part`}`;
+                }
+
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        systemInstruction: {
+                            parts: [{ text: sysInstruction }]
+                        },
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                { inlineData: { mimeType: targetBlob.type || "video/mp4", data: base64Data } }
+                            ]
+                        }],
+                        generationConfig: {
+                            maxOutputTokens: 8192,
+                            temperature: 0.1,
+                            responseMimeType: "text/plain"
+                        }
+                    })
+                });
+
+                const result = await response.json();
+                let textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+               
+                if (!textResponse) throw new Error("AI មិនបានផ្ដល់ចម្លើយត្រឡប់មកវិញទេ");
+
+                textResponse = textResponse.replace(/```(text)?/g, '').trim();
+                const lines = textResponse.split('\n');
+                let currentBatch = [];
+                
+                for(let line of lines) {
+                    const parts = line.split('|');
+                    if(parts.length >= 3) {
+                        const start = parseFloat(parts[0].trim().replace(/[^0-9.]/g, ''));
+                        const end = parseFloat(parts[1].trim().replace(/[^0-9.]/g, ''));
+                        const text = parts.slice(2).join('|').trim();
+                        
+                        if(!isNaN(start) && !isNaN(end) && text && text.length > 1 && !text.includes('start_time')) {
+                            if (attempts === 0 || end > lastEndTime - 1) {
+                                currentBatch.push({ start, end, text });
+                            }
+                        }
+                    }
+                }
+
+                if (currentBatch.length === 0) {
+                    console.warn("AI ឈប់ផ្តល់អត្ថបទថ្មី។ Raw response:", textResponse);
+                    break;
+                }
+
+                allCaptions = allCaptions.concat(currentBatch);
+                allCaptions.sort((a,b) => a.start - b.start);
+                
+                let newLastEndTime = allCaptions[allCaptions.length - 1].end;
+                if (newLastEndTime <= lastEndTime + 1) {
+                     break; 
+                }
+                
+                lastEndTime = newLastEndTime;
+                attempts++;
+            }
+            
+            captions = allCaptions;
+           
+            if (captions.length === 0) {
+                throw new Error("មិនអាចទាញយកទិន្នន័យ Caption បានទេ");
+            }
+
+        } catch (error) {
+            console.error("AI Error:", error);
+            alert(`បរាជ័យក្នុងការបង្កើត Caption៖ សូមប្រាកដថាវីដេអូមានសម្លេង ហើយទំហំមិនធំពេក។ \n\nកំហុសលម្អិត: ${error.message}`);
+            captions = [];
+        } finally {
+            aiStatus.classList.add('hidden');
+        }
+    }
+
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    // Reset Button Logic
+    resetBtn.addEventListener('click', () => {
+        // Reset Variables
+        videoFile = null;
+        captions = [];
+        isCancelled = false;
+        
+        // Reset UI
+        videoInput.value = '';
+        document.getElementById('fileName').innerText = '';
+        document.getElementById('fileName').classList.add('hidden');
+        document.getElementById('uploadPlaceholder').classList.remove('hidden');
+        previewOverlay.classList.remove('hidden');
+        
+        processBtn.disabled = true;
+        status.classList.add('hidden');
+        resultHeader.classList.add('hidden');
+        downloadList.innerHTML = '';
+        progressHint.classList.add('hidden');
+        
+        // Reset Video and Canvas
+        hiddenVideo.pause();
+        hiddenVideo.removeAttribute('src');
+        hiddenVideo.load();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Scroll to top smoothly
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        isCancelled = true;
+        cancelBtn.disabled = true;
+        cancelBtn.innerText = "កំពុងបញ្ឈប់...";
+    });
+
+    downloadAllBtn.addEventListener('click', () => {
+        const links = downloadList.querySelectorAll('.download-btn');
+        if (links.length === 0) return;
+       
+        downloadAllBtn.disabled = true;
+        const originalText = downloadAllBtn.innerHTML;
+        downloadAllBtn.innerText = "កំពុងទាញយក...";
+       
+        links.forEach((link, index) => {
+            setTimeout(() => {
+                link.click();
+                if (index === links.length - 1) {
+                    setTimeout(() => {
+                        downloadAllBtn.disabled = false;
+                        downloadAllBtn.innerHTML = originalText;
+                    }, 1000);
+                }
+            }, index * 800);
+        });
+    });
+
+    processBtn.addEventListener('click', async () => {
+        processBtn.disabled = true;
+        processBtn.classList.remove('w-full');
+        processBtn.classList.add('w-2/3');
+        cancelBtn.classList.remove('hidden');
+
+        isCancelled = false;
+        cancelBtn.disabled = false;
+        cancelBtn.innerText = "បោះបង់";
+
+        if (aiCaptionToggle.checked && (captions.length === 0)) {
+            await generateAICaptions();
+            if (captions.length === 0 && !confirm("AI មិនអាចបង្កើត Caption បានទេ។ តើអ្នកចង់បន្តផលិតដោយគ្មាន Caption ដែរឬទេ?")) {
+                processBtn.disabled = false;
+                processBtn.classList.remove('w-2/3');
+                processBtn.classList.add('w-full');
+                cancelBtn.classList.add('hidden');
+                return;
+            }
+        }
+
+        const durationPerClip = parseInt(document.getElementById('durationInput').value);
+        const totalDuration = hiddenVideo.duration;
+        const clipCount = Math.ceil(totalDuration / durationPerClip);
+
+        status.classList.remove('hidden');
+        progressHint.classList.remove('hidden');
+        downloadList.innerHTML = '';
+        resultHeader.classList.add('hidden');
+        hiddenVideo.volume = 0;
+
+        for (let i = 0; i < clipCount; i++) {
+            if (isCancelled) break;
+
+            const startTime = i * durationPerClip;
+            const endTime = Math.min((i + 1) * durationPerClip, totalDuration);
+            const actualDuration = endTime - startTime;
+
+            statusText.innerText = `កំពុងផលិតចំណែកទី ${i + 1} / ${clipCount}...`;
+            const blobData = await recordSegment(startTime, actualDuration);
+           
+            if (isCancelled) break;
+
+            addDownloadLink(blobData, i + 1);
+
+            const progress = Math.round(((i + 1) / clipCount) * 100);
+            progressBar.style.width = `${progress}%`;
+            progressPercent.innerText = `${progress}%`;
+        }
+
+        if (isCancelled) {
+            statusText.innerText = "បានបោះបង់ការផលិត!";
+        } else {
+            statusText.innerText = "រួចរាល់ ១០០%";
+        }
+       
+        if (downloadList.children.length > 0) {
+            resultHeader.classList.remove('hidden');
+        }
+
+        processBtn.disabled = false;
+        processBtn.classList.remove('w-2/3');
+        processBtn.classList.add('w-full');
+        cancelBtn.classList.add('hidden');
+        hiddenVideo.volume = 1;
+        progressHint.classList.add('hidden');
+    });
+
+    // មុខងារ Record ដោយកំណត់ប្រភេទ File ទៅជា MP4 បើ Browser គាំទ្រ
+    function recordSegment(startTime, duration) {
+        return new Promise((resolve) => {
+            hiddenVideo.currentTime = startTime;
+            hiddenVideo.pause();
+
+            hiddenVideo.onseeked = () => {
+                const vStream = canvas.captureStream(30);
+                const aStream = hiddenVideo.captureStream ? hiddenVideo.captureStream() : hiddenVideo.mozCaptureStream();
+                const tracks = [...vStream.getVideoTracks()];
+                if (aStream && aStream.getAudioTracks().length > 0) tracks.push(aStream.getAudioTracks()[0]);
+                const combined = new MediaStream(tracks);
+                
+                // កំណត់ទម្រង់វីដេអូជា MP4 
+                let mimeType = 'video/webm;codecs=vp9,opus';
+                let ext = 'mp4'; // យើងប្រើ extension .mp4
+                
+                if (MediaRecorder.isTypeSupported('video/mp4')) {
+                    mimeType = 'video/mp4';
+                } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264,opus')) {
+                    mimeType = 'video/webm;codecs=h264,opus'; // H264 អាច Rename ទៅ MP4 បានងាយស្រួល
+                }
+                
+                const recorder = new MediaRecorder(combined, { mimeType: mimeType });
+                const chunks = [];
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.onstop = () => resolve({ blob: new Blob(chunks, { type: mimeType }), ext: ext });
+                
+                recorder.start();
+                hiddenVideo.play();
+                const loop = () => { drawFrame(); if (!hiddenVideo.paused) requestAnimationFrame(loop); };
+                loop();
+                setTimeout(() => {
+                    hiddenVideo.pause();
+                    if (recorder.state !== "inactive") recorder.stop();
+                    combined.getTracks().forEach(t => t.stop());
+                }, duration * 1000);
+            };
+        });
+    }
+
+    function addDownloadLink(blobData, index) {
+        const url = URL.createObjectURL(blobData.blob);
+        const ext = blobData.ext;
+        const div = document.createElement('div');
+        div.className = "bg-white p-6 rounded-3xl shadow-lg border border-gray-100 flex flex-col space-y-4 hover:shadow-xl transition-shadow transform hover:-translate-y-1 duration-300";
+        div.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-br from-blue-500 to-purple-500 text-white w-12 h-12 flex items-center justify-center rounded-2xl font-black shadow-md italic">#${index}</div>
+                    <div>
+                        <p class="font-black text-gray-800 text-lg">ភាគទី ${index}</p>
+                        <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest">High Quality Ready</p>
+                    </div>
+                </div>
+            </div>
+            <a href="${url}" download="clip_part_${index}.${ext}" class="download-btn w-full bg-gray-900 text-white py-3 rounded-2xl text-center font-bold text-sm hover:bg-black transition shadow-lg">ទាញយកវីដេអូ (.${ext})</a>
+        `;
+        downloadList.appendChild(div);
+    }
+</script>
+
+</body>
+</html>
