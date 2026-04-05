@@ -1010,7 +1010,7 @@ ${lastEndTime === 0 ? "0.0|3.5|Hello everyone welcome back" : `${lastEndTime}|${
             }
 
             const response = await fetchWithRetry(
-              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
               {
                 method: "POST",
                 body: JSON.stringify({
